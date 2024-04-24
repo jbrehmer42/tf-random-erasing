@@ -9,9 +9,10 @@ def eraser(img):
     erase_ratio = 0.3
     erase_value = 0
     ##
-    height = img.shape[0]
-    width = img.shape[1]
-    channels = img.shape[2]
+    img_shape = img.shape
+    height = img_shape[0]
+    width = img_shape[1]
+    channels = img_shape[2] if len(img_shape) > 2 else 1
     area = height * width
     target_area = tf.random.uniform((), erase_frac_lower, erase_frac_upper) * area
     target_ratio = tf.random.uniform((), erase_ratio, 1/erase_ratio)
@@ -22,8 +23,9 @@ def eraser(img):
         x = int(tf.random.uniform((), 0, width - target_width, dtype=tf.int32))
         y = int(tf.random.uniform((), 0, height - target_height, dtype=tf.int32))
         new_img = tf.Variable(img)
-        new_img[y:y+target_height, x:x+target_width, 0].assign(erase_value)
-        new_img[y:y+target_height, x:x+target_width, 1].assign(erase_value)
-        new_img[y:y+target_height, x:x+target_width, 2].assign(erase_value)
+        if channels == 1:
+            new_img[y:y + target_height, x:x + target_width].assign(erase_value)
+        else:
+            new_img[y:y + target_height, x:x + target_width, 0:channels].assign(erase_value)
         return tf.convert_to_tensor(new_img)
     return img
