@@ -46,18 +46,20 @@ class ErasingLayer(tf.keras.layers.Layer):
             tf.random.uniform((), self.erase_frac_lower, self.erase_frac_upper) * area
         )
         target_ratio = tf.random.uniform((), self.erase_ratio, 1 / self.erase_ratio)
-        target_height = int(tf.math.round(tf.math.sqrt(target_area) * target_ratio))
-        target_width = int(tf.math.round(tf.math.sqrt(target_area) / target_ratio))
+        target_height = tf.cast(
+            tf.math.round(tf.math.sqrt(target_area) * target_ratio), tf.int32
+        )
+        target_width = tf.cast(
+            tf.math.round(tf.math.sqrt(target_area) / target_ratio), tf.int32
+        )
         if target_width < width and target_height < height:
-            x = int(tf.random.uniform((), 0, width - target_width, dtype=tf.int32))
-            y = int(tf.random.uniform((), 0, height - target_height, dtype=tf.int32))
+            x = tf.random.uniform((), 0, width - target_width, dtype=tf.int32)
+            y = tf.random.uniform((), 0, height - target_height, dtype=tf.int32)
             img = self.erase_target(img, x, y, target_height, target_width)
         return img
 
     @staticmethod
-    def erase_target(
-        img, x_loc: int, y_loc: int, target_height: int, target_width: int
-    ):
+    def erase_target(img, x_loc, y_loc, target_height, target_width):
         """Erase the target area specified by x, y location and height and width from
         the image.
         """
