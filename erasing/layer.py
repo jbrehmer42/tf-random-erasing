@@ -6,6 +6,13 @@ class ErasingLayer(tf.keras.layers.Layer):
     """Random erasing layer. Randomly selects a fraction of the image area which
     should be erased. Then a rectangle with area of the given shape and random height
     and width is erased.
+
+    Input shape:
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
+        **Note**: `"channels_first"` format not supported yet.
+
+    Output shape: same as input shape
     """
 
     def __init__(
@@ -80,6 +87,12 @@ class ErasingLayer(tf.keras.layers.Layer):
 
     def call(self, inputs, training: bool = True):
         if training:
+            unbatched = len(inputs.shape) == 3
+            if unbatched:
+                inputs = tf.expand_dims(inputs, axis=0)
+                outputs = tf.cast(inputs, tf.uint8)
+                outputs = tf.map_fn(fn=self.erase_in_single_image, elems=outputs)
+                return tf.squeeze(outputs, axis=0)
             outputs = tf.cast(inputs, tf.uint8)
             return tf.map_fn(fn=self.erase_in_single_image, elems=outputs)
         else:
