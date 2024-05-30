@@ -63,29 +63,17 @@ class ErasingLayer(tf.keras.layers.Layer):
         """Erase the target area specified by x, y location and height and width from
         the image.
         """
-        channels = img.shape[2] if len(img.shape) > 2 else 1
-        if channels == 1:
-            indices = tf.stack(
-                tf.meshgrid(
-                    tf.range(y_loc, y_loc + target_height),
-                    tf.range(x_loc, x_loc + target_width),
-                ),
-                axis=2,
-            )
-            updates = tf.zeros((target_width, target_height), dtype=tf.uint8)
-            img = tf.tensor_scatter_nd_update(img, indices, updates)
-        else:
-            indices = tf.stack(
-                tf.meshgrid(
-                    tf.range(y_loc, y_loc + target_height),
-                    tf.range(x_loc, x_loc + target_width),
-                    tf.range(0, channels),
-                ),
-                axis=3,
-            )
-            updates = tf.zeros((target_width, target_height, channels), dtype=tf.uint8)
-            img = tf.tensor_scatter_nd_update(img, indices, updates)
-        return img
+        channels = img.shape[2]
+        indices = tf.stack(
+            tf.meshgrid(
+                tf.range(y_loc, y_loc + target_height),
+                tf.range(x_loc, x_loc + target_width),
+                tf.range(0, channels),
+            ),
+            axis=3,
+        )
+        updates = tf.zeros((target_width, target_height, channels), dtype=tf.uint8)
+        return tf.tensor_scatter_nd_update(img, indices, updates)
 
     def call(self, inputs, training: bool = True):
         if training:
@@ -97,8 +85,7 @@ class ErasingLayer(tf.keras.layers.Layer):
                 return tf.squeeze(outputs, axis=0)
             outputs = tf.cast(inputs, tf.uint8)
             return tf.map_fn(fn=self.erase_in_single_image, elems=outputs)
-        else:
-            return inputs
+        return inputs
 
     def compute_output_shape(self, input_shape):
         return input_shape
