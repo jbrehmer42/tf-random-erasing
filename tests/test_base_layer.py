@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from erasing.layer import ErasingLayer
+from erasing.base_layer import ErasingBase
 
 
 @pytest.fixture()
@@ -74,7 +74,7 @@ def img_ch3():
 )
 def test_erase_target_one_channel(img_ch1, x_loc, y_loc, height, width, expected):
     """Erase from image with only one channel"""
-    layer = ErasingLayer()
+    layer = ErasingBase()
     result = layer.erase_target(
         img_ch1, x_loc=x_loc, y_loc=y_loc, target_height=height, target_width=width
     )
@@ -122,7 +122,7 @@ def test_erase_target_one_channel(img_ch1, x_loc, y_loc, height, width, expected
 )
 def test_erase_target_three_channels(img_ch3, x_loc, y_loc, height, width, expected):
     """Erase from image with three channels"""
-    layer = ErasingLayer()
+    layer = ErasingBase()
     result = layer.erase_target(
         img_ch3, x_loc=x_loc, y_loc=y_loc, target_height=height, target_width=width
     )

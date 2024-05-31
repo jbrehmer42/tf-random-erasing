@@ -1,18 +1,13 @@
 import tensorflow as tf
 from typing import Any
 
+from erasing.base_layer import ErasingBase
 
-class ErasingLayer(tf.keras.layers.Layer):
+
+class ErasingLayer(ErasingBase):
     """Random erasing layer. Randomly selects a fraction of the image area which
     should be erased. Then a rectangle with area of the given shape and random height
     and width is erased.
-
-    Input shape:
-        3D (unbatched) or 4D (batched) tensor with shape:
-        `(..., height, width, channels)`, in `"channels_last"` format.
-        **Note**: `"channels_first"` format not supported yet.
-
-    Output shape: same as input shape
     """
 
     def __init__(
@@ -23,7 +18,7 @@ class ErasingLayer(tf.keras.layers.Layer):
         name: str | None = None,
         **kwargs
     ):
-        """Create erasing layer
+        """Create an erasing layer
 
         :param erase_frac_lower: Lower limit of the fraction of image area to erase
         :param erase_frac_upper: Upper limit of the fraction of image area to erase
@@ -57,38 +52,6 @@ class ErasingLayer(tf.keras.layers.Layer):
             y = tf.random.uniform((), 0, height - target_height, dtype=tf.int32)
             img = self.erase_target(img, x, y, target_height, target_width)
         return img
-
-    @staticmethod
-    def erase_target(img, x_loc, y_loc, target_height, target_width):
-        """Erase the target area specified by x, y location and height and width from
-        the image.
-        """
-        channels = img.shape[2]
-        indices = tf.stack(
-            tf.meshgrid(
-                tf.range(y_loc, y_loc + target_height),
-                tf.range(x_loc, x_loc + target_width),
-                tf.range(0, channels),
-            ),
-            axis=3,
-        )
-        updates = tf.zeros((target_width, target_height, channels), dtype=tf.uint8)
-        return tf.tensor_scatter_nd_update(img, indices, updates)
-
-    def call(self, inputs, training: bool = True):
-        if training:
-            unbatched = len(inputs.shape) == 3
-            if unbatched:
-                inputs = tf.expand_dims(inputs, axis=0)
-                outputs = tf.cast(inputs, tf.uint8)
-                outputs = tf.map_fn(fn=self.erase_in_single_image, elems=outputs)
-                return tf.squeeze(outputs, axis=0)
-            outputs = tf.cast(inputs, tf.uint8)
-            return tf.map_fn(fn=self.erase_in_single_image, elems=outputs)
-        return inputs
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
 
     def get_config(self) -> dict[str, Any]:
         config = {
