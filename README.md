@@ -2,9 +2,14 @@
 
 An implementation of random erasing data augmentation using Tensorflow and `tf.keras.layers.Layer`. The 'standard'
 random erasing layer can be imported via
-````python
+```python
 from erasing.layer import ErasingLayer
-````
+```
+A random erasing layer where the erased rectangle respects some boundaries (e.g. only erase in the top left
+corner) can be imported via
+```python
+from erasing.limit_layer import ErasingLayerWithLimits
+```
 Other similar layers which want to erase (one or multiple) rectangles from the image can be created by inheriting
 from `ErasingBase` in `erasing.base_layer`. Run unit tests with pytest.
 
