@@ -4,6 +4,7 @@ from typing import Any
 from erasing.base_layer import ErasingBase
 
 
+@tf.keras.utils.register_keras_serializable()
 class ErasingLayer(ErasingBase):
     """Random erasing layer. Randomly selects a fraction of the image area which
     should be erased. Then a rectangle with area of the given shape and random height
@@ -54,10 +55,12 @@ class ErasingLayer(ErasingBase):
         return img
 
     def get_config(self) -> dict[str, Any]:
-        config = {
-            "erase_frac_lower": self.erase_frac_lower,
-            "erase_frac_upper": self.erase_frac_upper,
-            "erase_ratio": self.erase_ratio,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update(
+            {
+                "erase_frac_lower": self.erase_frac_lower,
+                "erase_frac_upper": self.erase_frac_upper,
+                "erase_ratio": self.erase_ratio,
+            }
+        )
+        return config

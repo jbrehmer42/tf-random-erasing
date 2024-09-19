@@ -1,8 +1,10 @@
 import tensorflow as tf
+from typing import Any
 
 from erasing.base_layer import ErasingBase
 
 
+@tf.keras.utils.register_keras_serializable()
 class ErasingLayerWithLimits(ErasingBase):
     """Random erasing layer which limits the erasing to a rectangle area of the image.
     Only parts of this are can be deleted, the rest of the image is 'protected'.
@@ -15,7 +17,7 @@ class ErasingLayerWithLimits(ErasingBase):
         erase_ratio: float = 0.3,
         name: str | None = None,
         area_limits: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0),
-        **kwargs
+        **kwargs,
     ):
         """Create erasing layer with limits
 
@@ -37,6 +39,10 @@ class ErasingLayerWithLimits(ErasingBase):
             area_limits = self.validate_limits(area_limits)
         self.top, self.right, self.bottom, self.left = area_limits
         super().__init__(name=name, **kwargs)
+
+    @property
+    def area_limits(self) -> tuple[float, float, float, float]:
+        return self.top, self.right, self.bottom, self.left
 
     @staticmethod
     def validate_limits(limits: tuple[float, ...]) -> tuple[float, float, float, float]:
@@ -107,3 +113,15 @@ class ErasingLayerWithLimits(ErasingBase):
             x, y = self.get_erasing_position(width, height, target_width, target_height)
             img = self.erase_target(img, x, y, target_height, target_width)
         return img
+
+    def get_config(self) -> dict[str, Any]:
+        config = super().get_config()
+        config.update(
+            {
+                "erase_frac_lower": self.erase_frac_lower,
+                "erase_frac_upper": self.erase_frac_upper,
+                "erase_ratio": self.erase_ratio,
+                "area_limits": self.area_limits,
+            }
+        )
+        return config
